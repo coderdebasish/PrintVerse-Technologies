@@ -45,6 +45,14 @@ export default function RequestQuote() {
     { code: '+81', name: 'Japan 🇯🇵', flag: '🇯🇵' },
     { code: '+49', name: 'Germany 🇩🇪', flag: '🇩🇪' },
     { code: '+61', name: 'Australia 🇦🇺', flag: '🇦🇺' },
+    { code: '+39', name: 'Italy 🇮🇹', flag: '🇮🇹' },
+    { code: '+34', name: 'Spain 🇪🇸', flag: '🇪🇸' },
+    { code: '+55', name: 'Brazil 🇧🇷', flag: '🇧🇷' },
+    { code: '+86', name: 'China 🇨🇳', flag: '🇨🇳' },
+    { code: '+7', name: 'Russia 🇷🇺', flag: '🇷🇺' },
+    { code: '+27', name: 'South Africa 🇿🇦', flag: '🇿🇦' },
+    { code: '+31', name: 'Netherlands 🇳🇱', flag: '🇳🇱' },
+    { code: '+43', name: 'Austria 🇦🇹', flag: '🇦🇹' },
   ]
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

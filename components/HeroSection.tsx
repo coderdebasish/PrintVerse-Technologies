@@ -14,7 +14,7 @@ export default function HeroSection() {
 
         <div className="flex flex-col sm:flex-row justify-center gap-6">
           <Link
-            href="/quote"
+            href="/request-quote"
             className="bg-accent text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-red-800 hover:scale-105 transition-all duration-300 shadow-lg"
           >
             Request a Quote

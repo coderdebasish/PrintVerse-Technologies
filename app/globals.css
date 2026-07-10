@@ -48,3 +48,19 @@ body {
     color: var(--color-gold);
   }
 }
+
+/* Custom styles for PrintVerse */
+.navbar-scrolled {
+  @apply bg-white shadow-md py-2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .mobile-menu {
+    @apply block;
+  }
+
+  .desktop-menu {
+    @apply hidden;
+  }
+}

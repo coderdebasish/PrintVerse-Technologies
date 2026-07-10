@@ -41,38 +41,38 @@ export default function ProductCollections() {
   ]
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-24 bg-gray-50">
       <div className="container mx-auto px-4 md:px-8">
-        <h2 className="text-3xl font-bold text-center text-primary mb-12">Product Collections</h2>
+        <h2 className="text-3xl font-bold text-center text-primary mb-16">Product Collections</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {collections.map((collection, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <span className="text-3xl mr-3">{collection.icon}</span>
-                  <h3 className="text-xl font-bold text-primary">{collection.name} Collection</h3>
+              <div className="p-8">
+                <div className="flex items-center mb-6">
+                  <span className="text-4xl mr-4">{collection.icon}</span>
+                  <h3 className="text-2xl font-bold text-primary">{collection.name} Collection</h3>
                   {collection.comingSoon && (
-                    <span className="ml-auto bg-accent text-white text-xs px-2 py-1 rounded-full">
+                    <span className="ml-auto bg-accent text-white text-sm px-3 py-1 rounded-full">
                       Coming Soon
                     </span>
                   )}
                 </div>
 
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {collection.products.map((product, idx) => (
                     <li key={idx} className="flex items-center">
-                      <span className="w-2 h-2 bg-primary rounded-full mr-3"></span>
+                      <span className="w-2 h-2 bg-primary rounded-full mr-4"></span>
                       <span className="text-gray-700">{product}</span>
                     </li>
                   ))}
                 </ul>
 
                 {collection.comingSoon && (
-                  <div className="mt-4 text-center">
+                  <div className="mt-6 text-center">
                     <Link
                       href="/products"
                       className="text-accent hover:text-red-800 font-medium"

@@ -1,19 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -24,7 +15,7 @@ export default function Navbar() {
   ]
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'}`}>
+    <nav className="fixed w-full z-50 bg-white shadow-sm top-0">
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
@@ -38,7 +29,7 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-gray-700 hover:text-primary font-medium transition-colors"
+                className="text-primary hover:text-accent font-medium transition-colors"
               >
                 {link.name}
               </Link>
@@ -74,7 +65,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="text-gray-700 hover:text-primary font-medium py-2 transition-colors"
+                  className="text-primary hover:text-accent font-medium py-2 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.name}

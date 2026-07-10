@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sudo apt-get update)",
+      "Bash(sudo apt-get install -y nodejs npm)",
+      "Bash(npm --version)"
+    ]
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import Navbar from '@/components/Navbar'
 
 export default function RequestQuote() {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ export default function RequestQuote() {
     phoneNumber: '',
     message: ''
   })
+  const [countryCode, setCountryCode] = useState('+91') // Default to India
   const [stlFile, setStlFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
@@ -33,6 +35,17 @@ export default function RequestQuote() {
 
   // Full name validation (at least 2 characters, letters and spaces only)
   const fullNameRegex = /^[A-Za-z\s]{2,}$/
+
+  // Country codes with flags
+  const countryOptions = [
+    { code: '+91', name: 'India 🇮🇳', flag: '🇮🇳' },
+    { code: '+1', name: 'United States 🇺🇸', flag: '🇺🇸' },
+    { code: '+44', name: 'United Kingdom 🇬🇧', flag: '🇬🇧' },
+    { code: '+33', name: 'France 🇫🇷', flag: '🇫🇷' },
+    { code: '+81', name: 'Japan 🇯🇵', flag: '🇯🇵' },
+    { code: '+49', name: 'Germany 🇩🇪', flag: '🇩🇪' },
+    { code: '+61', name: 'Australia 🇦🇺', flag: '🇦🇺' },
+  ]
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -183,7 +196,7 @@ export default function RequestQuote() {
         tracking_id: trackingId,
         customer_name: formData.fullName,
         email: formData.email,
-        phone: cleanPhoneNumber, // Store clean phone number
+        phone: `${countryCode}${cleanPhoneNumber}`, // Store country code + phone number
         stl_file_url: stlFileUrl,
         message: formData.message || null,
         status: 'Requested'
@@ -222,9 +235,14 @@ export default function RequestQuote() {
     }
   }
 
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCountryCode(e.target.value)
+  }
+
   if (submitSuccess && trackingId) {
     return (
       <div className="min-h-screen bg-gray-50 py-16">
+        <Navbar />
         <div className="container mx-auto px-4 md:px-8 max-w-2xl">
           <div className="bg-white rounded-xl shadow-md p-8 text-center">
             <div className="text-green-500 text-5xl mb-6">✓</div>
@@ -254,7 +272,8 @@ export default function RequestQuote() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-16">
-      <div className="container mx-auto px-4 md:px-8 max-w-2xl">
+      <Navbar />
+      <div className="container mx-auto px-4 md:px-8 max-w-2xl mt-4">
         <div className="bg-white rounded-xl shadow-md p-6 md:p-8">
           <h1 className="text-3xl font-bold text-primary mb-2">Request a Quote</h1>
           <p className="text-gray-600 mb-8">Fill out the form below to get started with your 3D printing project</p>
@@ -312,21 +331,39 @@ export default function RequestQuote() {
               <label htmlFor="phoneNumber" className="block text-primary font-medium mb-2">
                 Phone Number *
               </label>
-              <input
-                type="text"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handlePhoneChange}
-                required
-                className={`w-full px-4 py-3 border ${
-                  validationErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'
-                } rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors`}
-                placeholder="Enter your 10-digit phone number"
-              />
-              {validationErrors.phoneNumber && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.phoneNumber}</p>
-              )}
+              <div className="flex space-x-3">
+                <div className="w-1/3">
+                  <select
+                    id="countryCode"
+                    value={countryCode}
+                    onChange={handleCountryChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
+                  >
+                    {countryOptions.map((country) => (
+                      <option key={country.code} value={country.code}>
+                        {country.flag} {country.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="w-2/3">
+                  <input
+                    type="text"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handlePhoneChange}
+                    required
+                    className={`w-full px-4 py-3 border ${
+                      validationErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+                    } rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors`}
+                    placeholder="Enter your phone number"
+                  />
+                  {validationErrors.phoneNumber && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.phoneNumber}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div>

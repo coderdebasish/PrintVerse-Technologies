@@ -1,10 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -15,12 +24,12 @@ export default function Navbar() {
   ]
 
   return (
-    <nav className="fixed w-full z-50 bg-white shadow-sm top-0">
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-lg py-3' : 'bg-white/95 backdrop-blur-sm py-4'} sticky top-0`}>
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-primary">PrintVerse Technologies</h1>
+            <h1 className="text-2xl font-bold text-primary transition-all duration-300 hover:text-accent">PrintVerse Technologies</h1>
           </div>
 
           {/* Desktop Navigation */}
@@ -29,21 +38,22 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-primary hover:text-accent font-medium transition-colors"
+                className="text-primary hover:text-accent font-medium transition-all duration-300 relative group"
               >
                 {link.name}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
               </Link>
             ))}
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-primary focus:outline-none"
+            className="md:hidden text-primary focus:outline-none transition-transform duration-300 hover:scale-110"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
             <svg
-              className="w-6 h-6"
+              className="w-6 h-6 transition-transform duration-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -59,7 +69,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 py-4 border-t border-gray-200">
+          <div className="md:hidden mt-4 py-4 border-t border-gray-200 animate-fade-in">
             <div className="flex flex-col space-y-3">
               {navLinks.map((link) => (
                 <Link

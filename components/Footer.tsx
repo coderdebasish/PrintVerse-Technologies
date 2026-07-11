@@ -16,7 +16,7 @@ export default function Footer() {
             <ul className="space-y-3 text-blue-100">
               <li><a href="/" className="hover:text-white transition-colors">Home</a></li>
               <li><a href="/products" className="hover:text-white transition-colors">Products</a></li>
-              <li><a href="/quote" className="hover:text-white transition-colors">Request Quote</a></li>
+              <li><a href="/request-quote" className="hover:text-white transition-colors">Request Quote</a></li>
               <li><a href="/track" className="hover:text-white transition-colors">Track Order</a></li>
               <li><a href="/contact" className="hover:text-white transition-colors">Contact</a></li>
             </ul>

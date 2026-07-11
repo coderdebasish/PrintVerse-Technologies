@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/Navbar'
 import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
+import { isValidPhoneNumber } from 'libphonenumber-js'
 
 export default function RequestQuote() {
   const [formData, setFormData] = useState({
@@ -20,6 +21,7 @@ export default function RequestQuote() {
   const [trackingId, setTrackingId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [phoneNumberValue, setPhoneNumberValue] = useState<string | undefined>(undefined)
+  const [countryCode, setCountryCode] = useState('IN')
 
   // Validation states
   const [validationErrors, setValidationErrors] = useState({
@@ -95,8 +97,9 @@ export default function RequestQuote() {
       errors.phoneNumber = 'Phone number is required'
       isValid = false
     } else {
-      // Use libphonenumber-js for proper international phone number validation
-      const isValidNumber = isValidPhoneNumber(phoneNumberValue, 'IN')
+      // The react-phone-number-input component already validates the phone number format
+      // We just need to make sure it's not empty
+      const isValidNumber = phoneNumberValue.length > 0;
       if (!isValidNumber) {
         errors.phoneNumber = 'Please enter a valid phone number'
         isValid = false

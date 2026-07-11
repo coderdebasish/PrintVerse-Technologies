@@ -5,8 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/Navbar'
 import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
-import './custom-phone-input.css'
-import { isValidPhoneNumber } from 'libphonenumber-js'
 
 export default function RequestQuote() {
   const [formData, setFormData] = useState({

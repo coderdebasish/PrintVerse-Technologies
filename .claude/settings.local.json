@@ -3,7 +3,9 @@
     "allow": [
       "Bash(sudo apt-get update)",
       "Bash(sudo apt-get install -y nodejs npm)",
-      "Bash(npm --version)"
+      "Bash(npm --version)",
+      "Bash(find /home/iem_bsh/Debasish/Print Verse -type f -name \"*.tsx\" -o -name \"*.ts\" | xargs grep -l \"quote\\\\|contact\" | head -10)",
+      "Read(//home/iem_bsh/Debasish/**)"
     ]
   }
 }

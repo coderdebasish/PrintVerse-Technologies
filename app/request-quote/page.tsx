@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/Navbar'
 import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
+import './custom-phone-input.css'
+import { isValidPhoneNumber } from 'libphonenumber-js'
 
 export default function RequestQuote() {
   const [formData, setFormData] = useState({
@@ -95,8 +97,12 @@ export default function RequestQuote() {
       errors.phoneNumber = 'Phone number is required'
       isValid = false
     } else {
-      // The react-phone-number-input library handles international validation
-      // We don't need to validate specific lengths since it does this automatically
+      // Use libphonenumber-js for proper international phone number validation
+      const isValidNumber = isValidPhoneNumber(phoneNumberValue, 'IN')
+      if (!isValidNumber) {
+        errors.phoneNumber = 'Please enter a valid phone number'
+        isValid = false
+      }
     }
 
     // Validate STL file if provided (strict extension check)
@@ -316,25 +322,12 @@ export default function RequestQuote() {
               </label>
               <div className="relative">
                 <PhoneInput
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
                   international
                   defaultCountry="IN"
                   value={phoneNumberValue}
                   onChange={setPhoneNumberValue}
                   placeholder="Enter phone number"
-                  countrySelectComponent={({ value, onChange, countries }) => (
-                    <select
-                      value={value}
-                      onChange={(e) => onChange(e.target.value)}
-                      className="border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors w-full"
-                    >
-                      {countries.map((country) => (
-                        <option key={country} value={country}>
-                          {country}
-                        </option>
-                      ))}
-                    </select>
-                  )}
                 />
                 {validationErrors.phoneNumber && (
                   <p className="text-red-500 text-sm mt-1">{validationErrors.phoneNumber}</p>

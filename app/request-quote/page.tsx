@@ -3,6 +3,8 @@
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/Navbar'
+import PhoneInput from 'react-phone-number-input'
+import 'react-phone-number-input/style.css'
 
 export default function RequestQuote() {
   const [formData, setFormData] = useState({
@@ -11,13 +13,13 @@ export default function RequestQuote() {
     phoneNumber: '',
     message: ''
   })
-  const [countryCode, setCountryCode] = useState('+91') // Default to India
   const [stlFile, setStlFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [trackingId, setTrackingId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [phoneNumberValue, setPhoneNumberValue] = useState<string | undefined>(undefined)
 
   // Validation states
   const [validationErrors, setValidationErrors] = useState({
@@ -30,30 +32,8 @@ export default function RequestQuote() {
   // Email validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-  // Phone number validation (10 digits only)
-  const phoneRegex = /^\d{10}$/
-
   // Full name validation (at least 2 characters, letters and spaces only)
   const fullNameRegex = /^[A-Za-z\s]{2,}$/
-
-  // Country codes with flags
-  const countryOptions = [
-    { code: '+91', name: 'India 🇮🇳', flag: '🇮🇳' },
-    { code: '+1', name: 'United States 🇺🇸', flag: '🇺🇸' },
-    { code: '+44', name: 'United Kingdom 🇬🇧', flag: '🇬🇧' },
-    { code: '+33', name: 'France 🇫🇷', flag: '🇫🇷' },
-    { code: '+81', name: 'Japan 🇯🇵', flag: '🇯🇵' },
-    { code: '+49', name: 'Germany 🇩🇪', flag: '🇩🇪' },
-    { code: '+61', name: 'Australia 🇦🇺', flag: '🇦🇺' },
-    { code: '+39', name: 'Italy 🇮🇹', flag: '🇮🇹' },
-    { code: '+34', name: 'Spain 🇪🇸', flag: '🇪🇸' },
-    { code: '+55', name: 'Brazil 🇧🇷', flag: '🇧🇷' },
-    { code: '+86', name: 'China 🇨🇳', flag: '🇨🇳' },
-    { code: '+7', name: 'Russia 🇷🇺', flag: '🇷🇺' },
-    { code: '+27', name: 'South Africa 🇿🇦', flag: '🇿🇦' },
-    { code: '+31', name: 'Netherlands 🇳🇱', flag: '🇳🇱' },
-    { code: '+43', name: 'Austria 🇦🇹', flag: '🇦🇹' },
-  ]
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -110,14 +90,13 @@ export default function RequestQuote() {
       isValid = false
     }
 
-    // Validate phone number (strip spaces, dashes, plus signs first)
-    const cleanPhoneNumber = formData.phoneNumber.replace(/[^0-9]/g, '')
-    if (!cleanPhoneNumber) {
+    // Validate phone number using the library's built-in validation
+    if (!phoneNumberValue) {
       errors.phoneNumber = 'Phone number is required'
       isValid = false
-    } else if (!phoneRegex.test(cleanPhoneNumber)) {
-      errors.phoneNumber = 'Please enter a valid 10-digit phone number'
-      isValid = false
+    } else {
+      // The react-phone-number-input library handles international validation
+      // We don't need to validate specific lengths since it does this automatically
     }
 
     // Validate STL file if provided (strict extension check)
@@ -186,8 +165,6 @@ export default function RequestQuote() {
       const supabase = createClient()
 
       // Server-side validation - re-validate all fields
-      const cleanPhoneNumber = formData.phoneNumber.replace(/[^0-9]/g, '')
-
       if (!fullNameRegex.test(formData.fullName)) {
         throw new Error('Invalid full name')
       }
@@ -196,15 +173,13 @@ export default function RequestQuote() {
         throw new Error('Invalid email address')
       }
 
-      if (!phoneRegex.test(cleanPhoneNumber)) {
-        throw new Error('Invalid phone number')
-      }
+      // The phone number is already validated by the library and stored as full international format
 
       const { error: insertError } = await supabase.from('orders').insert({
         tracking_id: trackingId,
         customer_name: formData.fullName,
         email: formData.email,
-        phone: `${countryCode}${cleanPhoneNumber}`, // Store country code + phone number
+        phone: phoneNumberValue || null, // Store full international phone number
         stl_file_url: stlFileUrl,
         message: formData.message || null,
         status: 'Requested'
@@ -339,38 +314,31 @@ export default function RequestQuote() {
               <label htmlFor="phoneNumber" className="block text-primary font-medium mb-2">
                 Phone Number *
               </label>
-              <div className="flex space-x-3">
-                <div className="w-1/3">
-                  <select
-                    id="countryCode"
-                    value={countryCode}
-                    onChange={handleCountryChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
-                  >
-                    {countryOptions.map((country) => (
-                      <option key={country.code} value={country.code}>
-                        {country.flag} {country.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="w-2/3">
-                  <input
-                    type="text"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handlePhoneChange}
-                    required
-                    className={`w-full px-4 py-3 border ${
-                      validationErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'
-                    } rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors`}
-                    placeholder="Enter your phone number"
-                  />
-                  {validationErrors.phoneNumber && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.phoneNumber}</p>
+              <div className="relative">
+                <PhoneInput
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
+                  international
+                  defaultCountry="IN"
+                  value={phoneNumberValue}
+                  onChange={setPhoneNumberValue}
+                  placeholder="Enter phone number"
+                  countrySelectComponent={({ value, onChange, countries }) => (
+                    <select
+                      value={value}
+                      onChange={(e) => onChange(e.target.value)}
+                      className="border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors w-full"
+                    >
+                      {countries.map((country) => (
+                        <option key={country} value={country}>
+                          {country}
+                        </option>
+                      ))}
+                    </select>
                   )}
-                </div>
+                />
+                {validationErrors.phoneNumber && (
+                  <p className="text-red-500 text-sm mt-1">{validationErrors.phoneNumber}</p>
+                )}
               </div>
             </div>
 
@@ -420,9 +388,9 @@ export default function RequestQuote() {
 
             <button
               type="submit"
-              disabled={isSubmitting || !formData.fullName.trim() || !formData.email.trim() || !formData.phoneNumber.replace(/[^0-9]/g, '').length}
+              disabled={isSubmitting || !formData.fullName.trim() || !formData.email.trim() || !phoneNumberValue}
               className={`w-full bg-primary text-white py-4 rounded-lg font-bold text-lg hover:bg-blue-800 transition-colors flex items-center justify-center ${
-                isSubmitting || !formData.fullName.trim() || !formData.email.trim() || !formData.phoneNumber.replace(/[^0-9]/g, '').length
+                isSubmitting || !formData.fullName.trim() || !formData.email.trim() || !phoneNumberValue
                   ? 'opacity-75 cursor-not-allowed'
                   : ''
               }`}

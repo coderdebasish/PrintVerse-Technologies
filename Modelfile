@@ -1,0 +1,8 @@
+FROM qwen3-coder-next
+
+# Unlock huge context window for massive startup codebase tracking
+PARAMETER num_ctx 131072
+
+# Enable native multi-turn reasoning loops
+PARAMETER num_predict -1
+PARAMETER temperature 0.2

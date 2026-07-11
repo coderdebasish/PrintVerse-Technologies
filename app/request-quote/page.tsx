@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/Navbar'
 import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
-import { isValidPhoneNumber } from 'libphonenumber-js'
 
 export default function RequestQuote() {
   const [formData, setFormData] = useState({
@@ -22,6 +21,14 @@ export default function RequestQuote() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [phoneNumberValue, setPhoneNumberValue] = useState<string | undefined>(undefined)
   const [countryCode, setCountryCode] = useState('IN')
+
+  // Validation states for real-time feedback
+  const [formValidation, setFormValidation] = useState({
+    fullName: { isValid: true, message: '' },
+    email: { isValid: true, message: '' },
+    phoneNumber: { isValid: true, message: '' },
+    stlFile: { isValid: true, message: '' }
+  })
 
   // Validation states
   const [validationErrors, setValidationErrors] = useState({
@@ -40,6 +47,71 @@ export default function RequestQuote() {
   // Phone number validation - limit to reasonable length for Indian numbers
   const phoneRegex = /^\+?[1-9]\d{0,14}$/;
 
+  // Validation function
+  const validateField = (fieldName: string, value: string) => {
+    let isValid = true;
+    let message = '';
+
+    switch (fieldName) {
+      case 'fullName':
+        if (!value.trim()) {
+          isValid = false;
+          message = 'Full name is required';
+        } else if (!fullNameRegex.test(value)) {
+          isValid = false;
+          message = 'Full name must contain only letters and spaces, at least 2 characters';
+        } else if (value.length > 50) {
+          isValid = false;
+          message = 'Full name is too long';
+        }
+        break;
+
+      case 'email':
+        if (!value.trim()) {
+          isValid = false;
+          message = 'Email is required';
+        } else if (!emailRegex.test(value)) {
+          isValid = false;
+          message = 'Please enter a valid email address';
+        } else if (value.length > 254) {
+          isValid = false;
+          message = 'Email address is too long';
+        }
+        break;
+
+      case 'phoneNumber':
+        if (!value) {
+          isValid = false;
+          message = 'Phone number is required';
+        } else {
+          const phoneNumberLength = value.replace(/[^\d]/g, '').length;
+          // The react-phone-number-input component handles international formatting
+          // For valid phone numbers, the length should be between 7 and 15 digits (including country code)
+          if (phoneNumberLength < 7 || phoneNumberLength > 15) {
+            isValid = false;
+            message = 'Please enter a valid phone number';
+          }
+          // Additional validation for Indian numbers: if it's an Indian number (+91), the actual number part should be 10 digits
+          if (value.startsWith('+91')) {
+            const actualNumberLength = value.replace(/[^\d]/g, '').length;
+            if (actualNumberLength > 10) {
+              isValid = false;
+              message = 'For India, please enter exactly 10 digits without country code';
+            }
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    setFormValidation(prev => ({
+      ...prev,
+      [fieldName]: { isValid, message }
+    }));
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     // Sanitize phone number input to prevent invalid entries
@@ -51,10 +123,8 @@ export default function RequestQuote() {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
 
-    // Clear validation error when user starts typing
-    if (validationErrors[name as keyof typeof validationErrors]) {
-      setValidationErrors(prev => ({ ...prev, [name]: '' }))
-    }
+    // Validate field in real-time
+    validateField(name, value);
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,8 +133,17 @@ export default function RequestQuote() {
 
       // Validate file extension strictly (case-insensitive)
       if (file.name.toLowerCase().endsWith('.stl')) {
-        setStlFile(file)
-        setValidationErrors(prev => ({ ...prev, stlFile: '' }))
+        // Check file size - limit to 150 MB
+        if (file.size > 150 * 1024 * 1024) {
+          setValidationErrors(prev => ({ ...prev, stlFile: 'File size exceeds 150 MB limit' }))
+          if (fileInputRef.current) {
+            fileInputRef.current.value = ''
+          }
+          setStlFile(null)
+        } else {
+          setStlFile(file)
+          setValidationErrors(prev => ({ ...prev, stlFile: '' }))
+        }
       } else {
         setValidationErrors(prev => ({ ...prev, stlFile: 'Please upload only .stl files' }))
         if (fileInputRef.current) {
@@ -326,15 +405,17 @@ export default function RequestQuote() {
                     value={formData.fullName}
                     onChange={handleInputChange}
                     required
-                    className={`w-full px-5 py-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-gray-900 bg-gray-50 placeholder-gray-500`}
+                    className={`w-full px-5 py-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-gray-900 bg-gray-50 placeholder-gray-500 ${
+                      !formValidation.fullName.isValid ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="Enter your full name"
                   />
-                  {validationErrors.fullName && (
+                  {!formValidation.fullName.isValid && (
                     <p className="text-red-500 text-sm mt-2 flex items-center">
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
-                      {validationErrors.fullName}
+                      {formValidation.fullName.message}
                     </p>
                   )}
                 </div>
@@ -350,15 +431,17 @@ export default function RequestQuote() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className={`w-full px-5 py-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-gray-900 bg-gray-50 placeholder-gray-500`}
+                    className={`w-full px-5 py-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-gray-900 bg-gray-50 placeholder-gray-500 ${
+                      !formValidation.email.isValid ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="Enter your email address"
                   />
-                  {validationErrors.email && (
+                  {!formValidation.email.isValid && (
                     <p className="text-red-500 text-sm mt-2 flex items-center">
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
-                      {validationErrors.email}
+                      {formValidation.email.message}
                     </p>
                   )}
                 </div>
@@ -369,22 +452,38 @@ export default function RequestQuote() {
                   </label>
                   <div className="relative">
                     <PhoneInput
-                      className="w-full px-5 py-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-gray-900 bg-gray-50"
+                      className={`w-full px-5 py-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-gray-900 bg-gray-50 ${
+                        !formValidation.phoneNumber.isValid ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       international
                       defaultCountry="IN"
                       value={phoneNumberValue}
-                      onChange={setPhoneNumberValue}
+                      onChange={(value) => {
+                        setPhoneNumberValue(value);
+                        // Validate when phone number changes
+                        if (value) {
+                          const phoneNumberLength = value.replace(/[^\d]/g, '').length;
+                          if (phoneNumberLength < 7 || phoneNumberLength > 15) {
+                            validateField('phoneNumber', value);
+                          } else {
+                            validateField('phoneNumber', value);
+                          }
+                        } else {
+                          validateField('phoneNumber', '');
+                        }
+                      }}
                       placeholder="Enter phone number"
                     />
-                    {validationErrors.phoneNumber && (
+                    {!formValidation.phoneNumber.isValid && (
                       <p className="text-red-500 text-sm mt-2 flex items-center">
                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        {validationErrors.phoneNumber}
+                        {formValidation.phoneNumber.message}
                       </p>
                     )}
                   </div>
+                  <p className="text-gray-500 text-sm mt-2">For India, enter 10 digits without country code</p>
                 </div>
 
                 <div>
@@ -394,7 +493,7 @@ export default function RequestQuote() {
                   <div
                     className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-300 ${
                       stlFile ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
-                    }`}
+                    } ${!formValidation.stlFile.isValid ? 'border-red-500' : ''}`}
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <input
@@ -421,16 +520,16 @@ export default function RequestQuote() {
                         </svg>
                         <p className="font-medium text-gray-700">Drag & drop your STL file here</p>
                         <p className="text-sm text-gray-500 mt-1">or click to browse files</p>
-                        <p className="text-xs text-gray-400 mt-2">Only .stl files are accepted</p>
+                        <p className="text-xs text-gray-400 mt-2">Only .stl files are accepted (max 150 MB)</p>
                       </div>
                     )}
                   </div>
-                  {validationErrors.stlFile && (
+                  {!formValidation.stlFile.isValid && (
                     <p className="text-red-500 text-sm mt-2 flex items-center">
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
-                      {validationErrors.stlFile}
+                      {formValidation.stlFile.message}
                     </p>
                   )}
                 </div>
